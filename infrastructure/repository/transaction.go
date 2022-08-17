@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/zorasantos/code-bank/domain"
 )
@@ -43,6 +44,18 @@ func (t *TransactionRepositoryDb) SaveTransaction(transaction domain.Transaction
 		return err
 	}
 	return nil
+}
+
+func (t *TransactionRepositoryDb) GetCreditCard(creditCard domain.CreditCard) (domain.CreditCard, error) {
+	var c domain.CreditCard
+	stmt, err := t.db.Prepare("select id, balance, balance_limit from credit_cards where number=$1")
+	if err != nil {
+		return c, err
+	}
+	if err = stmt.QueryRow(creditCard.Number).Scan(&c.ID, &c.Balance, &c.Limit); err != nil {
+		return c, errors.New("credit card does not exists")
+	}
+	return c, nil
 }
 
 func (t *TransactionRepositoryDb) updateBalance(creditCard domain.CreditCard) error {
